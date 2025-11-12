@@ -131,6 +131,7 @@ class MemberPress_Corporate_Reporting {
         $membership_ids_str = implode(',', array_map('intval', $corporate_membership_ids));
 
         // Query to get parent corporate accounts with their sub-accounts
+        // Only get PARENT accounts (those WITHOUT mpca_corporate_account_id meta key)
         $query = "
             SELECT
                 parent.ID as parent_id,
@@ -149,18 +150,19 @@ class MemberPress_Corporate_Reporting {
             FROM {$wpdb->users} parent
             INNER JOIN {$transactions_table} t ON parent.ID = t.user_id
             LEFT JOIN {$subscriptions_table} s ON t.subscription_id = s.id
-            LEFT JOIN {$wpdb->usermeta} pm_company ON parent.ID = pm_company.user_id AND pm_company.meta_key = 'mepr_company_name'
-            LEFT JOIN {$wpdb->usermeta} pm_location ON parent.ID = pm_location.user_id AND pm_location.meta_key = 'mepr_company_location'
-            LEFT JOIN {$wpdb->usermeta} pm_corporate_parent ON pm_corporate_parent.user_id = parent.ID AND pm_corporate_parent.meta_key = 'mepr_corporate_account_id'
+            LEFT JOIN {$wpdb->usermeta} pm_company ON parent.ID = pm_company.user_id AND pm_company.meta_key = 'mepr_company'
+            LEFT JOIN {$wpdb->usermeta} pm_location ON parent.ID = pm_location.user_id AND pm_location.meta_key = 'mepr_location'
+            LEFT JOIN {$wpdb->usermeta} pm_is_sub ON parent.ID = pm_is_sub.user_id AND pm_is_sub.meta_key = 'mpca_corporate_account_id'
             LEFT JOIN {$wpdb->users} sub ON sub.ID IN (
                 SELECT user_id FROM {$wpdb->usermeta}
-                WHERE meta_key = 'mepr_parent_account_id'
+                WHERE meta_key = 'mpca_corporate_account_id'
                 AND meta_value = parent.ID
             )
-            LEFT JOIN {$wpdb->usermeta} sm_login_count ON sub.ID = sm_login_count.user_id AND sm_login_count.meta_key = 'mepr_login_count'
-            LEFT JOIN {$wpdb->usermeta} sm_last_login ON sub.ID = sm_last_login.user_id AND sm_last_login.meta_key = 'mepr_last_login'
+            LEFT JOIN {$wpdb->usermeta} sm_login_count ON sub.ID = sm_login_count.user_id AND sm_login_count.meta_key = '# Logins'
+            LEFT JOIN {$wpdb->usermeta} sm_last_login ON sub.ID = sm_last_login.user_id AND sm_last_login.meta_key = 'Last Login'
             WHERE t.product_id IN ({$membership_ids_str})
             AND t.status IN ('complete', 'confirmed')
+            AND pm_is_sub.meta_value IS NULL
         ";
 
         // Add filters
@@ -219,6 +221,8 @@ class MemberPress_Corporate_Reporting {
     public function get_sub_accounts($parent_id) {
         global $wpdb;
 
+        $subscriptions_table = $wpdb->prefix . 'mepr_subscriptions';
+
         $query = $wpdb->prepare("
             SELECT
                 u.ID,
@@ -227,13 +231,13 @@ class MemberPress_Corporate_Reporting {
                 u.display_name,
                 um_login_count.meta_value as login_count,
                 um_last_login.meta_value as last_login,
-                um_active.meta_value as is_active
+                (SELECT COUNT(*) FROM {$subscriptions_table} s
+                 WHERE s.user_id = u.ID AND s.status = 'active') as active_subscription_count
             FROM {$wpdb->users} u
             INNER JOIN {$wpdb->usermeta} um_parent ON u.ID = um_parent.user_id
-            LEFT JOIN {$wpdb->usermeta} um_login_count ON u.ID = um_login_count.user_id AND um_login_count.meta_key = 'mepr_login_count'
-            LEFT JOIN {$wpdb->usermeta} um_last_login ON u.ID = um_last_login.user_id AND um_last_login.meta_key = 'mepr_last_login'
-            LEFT JOIN {$wpdb->usermeta} um_active ON u.ID = um_active.user_id AND um_active.meta_key = 'mepr_is_active'
-            WHERE um_parent.meta_key = 'mepr_parent_account_id'
+            LEFT JOIN {$wpdb->usermeta} um_login_count ON u.ID = um_login_count.user_id AND um_login_count.meta_key = '# Logins'
+            LEFT JOIN {$wpdb->usermeta} um_last_login ON u.ID = um_last_login.user_id AND um_last_login.meta_key = 'Last Login'
+            WHERE um_parent.meta_key = 'mpca_corporate_account_id'
             AND um_parent.meta_value = %d
             ORDER BY um_last_login.meta_value DESC
         ", $parent_id);
@@ -246,7 +250,8 @@ class MemberPress_Corporate_Reporting {
             $sub['formatted_last_login'] = !empty($sub['last_login'])
                 ? human_time_diff(strtotime($sub['last_login']), current_time('timestamp')) . ' ago'
                 : 'Never';
-            $sub['is_active'] = !empty($sub['is_active']) && $sub['is_active'] === '1';
+            // Check if user has active subscription
+            $sub['is_active'] = isset($sub['active_subscription_count']) && intval($sub['active_subscription_count']) > 0;
         }
 
         return $sub_accounts;
