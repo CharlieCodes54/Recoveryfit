@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MemberPress Corporate Membership Dashboard</title>
+  <style>
+    /* ==========================================
+       ROOT VARIABLES
+       ========================================== */
+    :root {
+      /* Background colors */
+      --bg-main: #020817;
+      --bg-header: #050816;
+
+      /* Border colors */
+      --border-soft: #1f2937;
+
+      /* Text colors */
+      --text-main: #f1f5f9;
+      --text-bright: #ffffff;
+      --text-sub: #a1a1aa;
+
+      /* Accent colors */
+      --accent: #38bdf8;
+
+      /* Border radius */
+      --radius-lg: 18px;
+
+      /* Shadows */
+      --shadow-card: 0 14px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    /* ==========================================
+       GLOBAL STYLES
+       ========================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.5;
+      overflow-x: hidden;
+    }
+
+    /* ==========================================
+       HEADER SECTION
+       ========================================== */
+    .header {
+      background: var(--bg-header);
+      border-bottom: 1px solid var(--border-soft);
+      padding: 24px 32px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .header-content {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 28px;
+      color: var(--text-bright);
+      font-weight: 700;
+      letter-spacing: 0.015em;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+
+    /* ==========================================
+       DASHBOARD CONTAINER
+       ========================================== */
+    .dashboard-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px 32px;
+      height: calc(100vh - 120px);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sheet-info {
+      margin-bottom: 16px;
+      padding: 12px 16px;
+      background: var(--bg-header);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .sheet-info-label {
+      color: var(--text-sub);
+      font-size: 13px;
+    }
+
+    .sheet-info-link {
+      color: var(--accent);
+      text-decoration: none;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: opacity 0.2s;
+    }
+
+    .sheet-info-link:hover {
+      opacity: 0.8;
+      text-decoration: underline;
+    }
+
+    /* ==========================================
+       IFRAME CONTAINER
+       ========================================== */
+    .iframe-wrapper {
+      flex: 1;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      background: #ffffff;
+      box-shadow: var(--shadow-card);
+    }
+
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* ==========================================
+       LOADING STATE
+       ========================================== */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      color: var(--text-sub);
+      font-size: 16px;
+    }
+
+    .loading::before {
+      content: '';
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--border-soft);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      margin-right: 12px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ==========================================
+       RESPONSIVE DESIGN
+       ========================================== */
+    @media (max-width: 768px) {
+      .header {
+        padding: 16px 20px;
+      }
+
+      h1 {
+        font-size: 22px;
+      }
+
+      .dashboard-container {
+        padding: 16px 20px;
+        height: calc(100vh - 100px);
+      }
+
+      .sheet-info {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-content">
+      <h1>MemberPress Corporate Membership Dashboard</h1>
+      <div class="subtitle">Reporting & Analytics for Corporate Memberships</div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard-container">
+    <!-- Sheet Info Bar -->
+    <div class="sheet-info">
+      <div class="sheet-info-label">
+        📊 Data Source: MemberPress Corporate Memberships
+      </div>
+      <a
+        href="https://docs.google.com/spreadsheets/d/1PeCWYZKM9k_n63jGRYF6vTrizBx8v5pehiAFatd5ifU/edit?gid=369191302#gid=369191302"
+        target="_blank"
+        class="sheet-info-link"
+      >
+        <span>Open in Google Sheets</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+          <polyline points="15 3 21 3 21 9"></polyline>
+          <line x1="10" y1="14" x2="21" y2="3"></line>
+        </svg>
+      </a>
+    </div>
+
+    <!-- Iframe Wrapper -->
+    <div class="iframe-wrapper" id="iframeWrapper">
+      <div class="loading">Loading Google Sheet...</div>
+    </div>
+  </div>
+
+  <script>
+    // Google Sheets embed configuration
+    const SHEET_ID = '1PeCWYZKM9k_n63jGRYF6vTrizBx8v5pehiAFatd5ifU';
+    const GID = '369191302';
+
+    // Construct the embed URL
+    // Using the /pubhtml endpoint for better embedding support
+    const embedUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pubhtml?gid=${GID}&single=true&widget=true&headers=false`;
+
+    // Create iframe after page load
+    window.addEventListener('DOMContentLoaded', () => {
+      const wrapper = document.getElementById('iframeWrapper');
+
+      // Create iframe element
+      const iframe = document.createElement('iframe');
+      iframe.src = embedUrl;
+      iframe.title = 'MemberPress Corporate Membership Data';
+      iframe.loading = 'eager';
+
+      // Handle iframe load event
+      iframe.addEventListener('load', () => {
+        // Remove loading message
+        const loading = wrapper.querySelector('.loading');
+        if (loading) {
+          loading.remove();
+        }
+      });
+
+      // Handle iframe error
+      iframe.addEventListener('error', () => {
+        wrapper.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #f97316; padding: 20px; text-align: center;">
+            <div>
+              <div style="font-size: 18px; margin-bottom: 12px;">⚠️ Failed to load Google Sheet</div>
+              <div style="color: var(--text-sub); font-size: 14px;">
+                The sheet may not be publicly accessible. Please check sharing settings.
+              </div>
+              <div style="margin-top: 16px;">
+                <a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?gid=${GID}#gid=${GID}"
+                   target="_blank"
+                   style="color: var(--accent); text-decoration: none;">
+                  Open directly in Google Sheets →
+                </a>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      // Clear wrapper and add iframe
+      wrapper.innerHTML = '';
+      wrapper.appendChild(iframe);
+    });
+  </script>
+</body>
+</html>
