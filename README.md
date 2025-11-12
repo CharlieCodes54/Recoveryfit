@@ -1,12 +1,53 @@
-# MemberPress Corporate Membership Dashboard
+# MemberPress Corporate Membership Reporting
 
-A clean, responsive reporting dashboard that embeds Google Sheets data for MemberPress corporate membership tracking.
+Professional reporting solutions for MemberPress corporate memberships with focus on parent account usage and sub-account login statistics.
 
-## 🚀 Live Demo
+## 🎯 Two Solutions Available
 
-Deploy this to Vercel, Netlify, or any static hosting service. The dashboard will automatically load your Google Sheets data.
+### ⭐ **Option 1: WordPress Plugin (RECOMMENDED)**
 
-## 📋 Setup Instructions
+A full-featured WordPress plugin that integrates directly with MemberPress for real-time reporting.
+
+**Benefits:**
+- ✅ Real-time data from MemberPress database
+- ✅ No manual exports needed
+- ✅ Native WordPress admin integration
+- ✅ Advanced filtering and sorting
+- ✅ CSV export functionality
+- ✅ Expandable sub-account details
+- ✅ Secure, admin-only access
+
+**[📖 View Plugin Documentation](PLUGIN-README.md)**
+
+#### Quick Install (WordPress Plugin)
+
+1. **Copy plugin files** to WordPress:
+   ```bash
+   # Copy entire folder structure to your WordPress plugins directory
+   cp -r . /path/to/wordpress/wp-content/plugins/memberpress-corporate-reporting/
+   ```
+
+2. **Activate in WordPress**:
+   - Go to Plugins → Installed Plugins
+   - Find "MemberPress Corporate Reporting"
+   - Click "Activate"
+
+3. **Access Dashboard**:
+   - Look for "Corporate Reports" in WordPress admin menu
+   - View real-time corporate membership statistics!
+
+4. **Configure (if needed)**:
+   - Default corporate membership IDs: 3888, 3889
+   - Update in plugin file if your IDs differ
+   - See [PLUGIN-README.md](PLUGIN-README.md) for details
+
+---
+
+### Option 2: Static Dashboard (Google Sheets Embed)
+
+A standalone HTML dashboard that embeds Google Sheets data. Useful for external hosting or public dashboards.
+
+## 📋 Setup Instructions (Static Dashboard)
 
 ### Step 1: Publish Your Google Sheet
 
