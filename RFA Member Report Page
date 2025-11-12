@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Corporate Membership Usage Report</title>
+  <style>
+    /* ==========================================
+       ROOT VARIABLES - Modify these for quick theming
+       ========================================== */
+    :root {
+      /* Background colors */
+      --bg-main: #020817;           /* Main page background */
+      --bg-card: #050816;           /* Invoice card background */
+      --bg-header-hover: #0f172a;   /* Invoice header hover state */
+      --bg-input: #0b1120;          /* Input/select background */
+      --bg-dropdown: #050816;       /* Dropdown menu background */
+      --bg-location: #12253a;       /* Location header background */
+      --bg-location-sub: #02111d;   /* Location subheader background */
+      --bg-table-alt: #0f172a;      /* Alternating table row background */
+      
+      /* Border colors */
+      --border-soft: #1f2937;       /* Subtle borders */
+      --border-section: #1e293b;    /* Section divider borders */
+      
+      /* Text colors */
+      --text-main: #f1f5f9;         /* Primary text */
+      --text-sub: #a1a1aa;          /* Secondary text */
+      --text-muted: #6b7280;        /* Muted/placeholder text */
+      --text-label: #9ca3af;        /* Form labels */
+      --text-bright: #ffffff;       /* Brightest text (headers) */
+      
+      /* Accent colors */
+      --accent: #38bdf8;            /* Primary accent (focus states) */
+      --accent-green: #22c55e;      /* Success/active status */
+      --accent-orange: #f97316;     /* Warning/inactive status */
+      
+      /* Status backgrounds */
+      --bg-status-active: #052e16;  /* Active pill background */
+      --bg-status-inactive: #3b1d0a;/* Inactive pill background */
+      
+      /* Border radius */
+      --radius-lg: 18px;            /* Large border radius (cards) */
+      --radius-md: 10px;            /* Medium border radius (inputs) */
+      --radius-pill: 999px;         /* Pill shape */
+      
+      /* Shadows */
+      --shadow-card: 0 14px 40px rgba(0, 0, 0, 0.4);
+      --shadow-dropdown: 0 18px 40px rgba(0, 0, 0, 0.6);
+      
+      /* Z-index layers */
+      --z-dropdown: 40;
+      --z-sticky: 1;
+    }
+
+    /* ==========================================
+       GLOBAL STYLES
+       ========================================== */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg-main);
+      color: var(--text-main);
+      margin: 0;
+      padding: 32px 16px;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.5;
+    }
+
+    /* ==========================================
+       PAGE CONTAINER
+       ========================================== */
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* ==========================================
+       HEADER SECTION
+       ========================================== */
+    h1 {
+      font-size: 34px;
+      margin: 0 0 12px 0;
+      color: var(--text-bright);
+      font-weight: 700;
+      letter-spacing: 0.015em;
+    }
+
+    /* Summary strip: shows target memberships */
+    .summary-strip {
+      font-size: 15px;
+      color: var(--text-sub);
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* Badge styling for membership IDs */
+    .badge {
+      font-size: 12px;
+      padding: 5px 12px;
+      border-radius: var(--radius-pill);
+      background: var(--bg-main);
+      color: var(--text-main);
+      border: 1px solid var(--border-soft);
+    }
+
+    /* ==========================================
+       CONTROL PANEL - 4-column grid of filter cards
+       ========================================== */
+    .control-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    /* Individual control card */
+    .control-card {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border-soft);
+      padding: 14px 16px 12px;
+      box-shadow: var(--shadow-card);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    /* Card title (e.g., "DATA SOURCE") */
+    .control-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-label);
+      margin-bottom: 4px;
+    }
+
+    /* Container for multiple controls in a card */
+    .controls-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* Form labels */
+    .controls label {
+      color: var(--text-label);
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Standard inputs and selects */
+    .controls input,
+    .controls select {
+      background: var(--bg-input);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-md);
+      padding: 8px 10px;
+      color: var(--text-main);
+      font-size: 13px;
+      font-weight: 500;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s ease;
+    }
+
+    .controls input::placeholder,
+    .controls select::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* Focus state for inputs */
+    .controls input:focus,
+    .controls select:focus {
+      border-color: var(--accent);
+    }
+
+    /* File upload specific styling */
+    .upload-box-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-sub);
+    }
+
+    .upload-box-inner input[type="file"] {
+      font-size: 12px;
+      color: var(--text-main);
+      padding: 6px 8px;
+    }
+
+    .upload-status {
+      font-size: 10px;
+      color: var(--text-sub);
+      margin-top: 2px;
+    }
+
+    /* Helper text below inputs */
+    .hint {
+      font-size: 9px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      margin-top: 4px;
+    }
+
+    /* ==========================================
+       MULTI-SELECT DROPDOWN (Invoice Filter)
+       FIXED: Horizontal layout for checkbox + label
+       ========================================== */
+    .multi-select {
+      position: relative;
+      width: 100%;
+      font-size: 12px;
+    }
+
+    /* Display button that shows selected count */
+    .multi-select-display {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-soft);
+      background: var(--bg-input);
+      color: var(--text-sub);
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s ease;
+    }
+
+    .multi-select-display:hover {
+      border-color: var(--accent);
+    }
+
+    /* Text showing selection state */
+    .multi-select-display span.label-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-weight: 500;
+      flex: 1;
+    }
+
+    /* Chevron indicator */
+    .multi-select-display span.chevron {
+      margin-left: 8px;
+      font-size: 11px;
+      transition: transform 0.2s ease;
+    }
+
+    /* Open state styling */
+    .multi-select.open .multi-select-display {
+      border-color: var(--accent);
+      color: var(--text-main);
+    }
+
+    .multi-select.open .chevron {
+      transform: rotate(180deg);
+    }
+
+    /* Dropdown menu container */
+    .multi-select-menu {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      margin-top: 4px;
+      background: var(--bg-dropdown);
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-soft);
+      box-shadow: var(--shadow-dropdown);
+      max-height: 280px;
+      overflow-y: auto;
+      padding: 4px 0;
+      display: none;
+      z-index: var(--z-dropdown);
+    }
+
+    .multi-select.open .multi-select-menu {
+      display: block;
+    }
+
+    /* FIXED: Individual checkbox row - now horizontal layout */
+    .multi-select-row {
+      display: flex;
+      align-items: center;
+      padding: 8px 12px;
+      cursor: pointer;
+      transition: background 0.15s ease;
+      gap: 10px; /* Space between checkbox and label */
+    }
+
+    .multi-select-row:hover {
+      background: var(--bg-header-hover);
+    }
+
+    /* Checkbox styling */
+    .multi-select-checkbox {
+      flex-shrink: 0;
+      margin: 0;
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: var(--accent);
+    }
+
+    /* Label text - now flows next to checkbox */
+    .multi-select-label {
+      flex: 1;
+      font-size: 13px;
+      color: var(--text-sub);
+      font-weight: 500;
+      cursor: pointer;
+      user-select: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Selected state highlighting */
+    .multi-select-row.selected {
+      background: rgba(56, 189, 248, 0.08);
+    }
+
+    .multi-select-row.selected .multi-select-label {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* ==========================================
+       TOTALS BAR - Shows aggregate stats
+       ========================================== */
+    .totals-bar {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-sub);
+      margin: 10px 0 14px 0;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+
+    /* ==========================================
+       INVOICE CARDS - Collapsible sections
+       ========================================== */
+    .account-card {
+      background: #0a0f1a;
+      border: 1px solid var(--border-soft);
+      border-radius: var(--radius-lg);
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: border-color 0.2s ease;
+    }
+
+    .account-card:hover {
+      border-color: var(--accent);
+    }
+
+    /* Clickable header area */
+    .account-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 18px;
+      cursor: pointer;
+      user-select: none;
+      gap: 16px;
+      transition: background 0.2s ease;
+    }
+
+    .account-header:hover {
+      background: var(--bg-header-hover);
+    }
+
+    /* Left side: title + metrics */
+    .account-title-wrap {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .account-title {
+      font-weight: 700;
+      font-size: 18px;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    /* Metrics row under title */
+    .account-metrics {
+      font-size: 13px;
+      color: var(--text-sub);
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-weight: 500;
+    }
+
+    .account-metrics strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Expand/collapse chevron */
+    .chevron {
+      transition: transform 0.2s ease;
+      font-size: 18px;
+      color: var(--text-sub);
+      flex-shrink: 0;
+    }
+
+    .chevron.open {
+      transform: rotate(90deg);
+    }
+
+    /* Collapsible body content */
+    .account-body {
+      display: none;
+      padding: 6px 14px 12px 14px;
+      background: var(--bg-card);
+      border-top: 1px solid var(--border-soft);
+    }
+
+    /* ==========================================
+       LOCATION SECTIONS - Grouped user tables
+       ========================================== */
+    .location-section {
+      margin-top: 12px;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border-section);
+      overflow: hidden;
+    }
+
+    /* Location name header */
+    .location-header {
+      padding: 10px 12px;
+      background: var(--bg-location);
+      color: var(--text-bright);
+      font-size: 13px;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-section);
+      letter-spacing: 0.03em;
+    }
+
+    /* "Users" subheader */
+    .location-subheader {
+      padding: 6px 12px;
+      background: var(--bg-location-sub);
+      font-size: 11px;
+      color: var(--text-sub);
+      font-weight: 600;
+      border-bottom: 1px solid var(--border-section);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* ==========================================
+       DATA TABLES - User listing
+       Adjust column widths via <col> tags in HTML
+       ========================================== */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      table-layout: fixed;
+    }
+
+    /* Sticky header */
+    thead {
+      background: var(--bg-input);
+      position: sticky;
+      top: 0;
+      z-index: var(--z-sticky);
+    }
+
+    th,
+    td {
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border-section);
+      text-align: left;
+      color: var(--text-main);
+      font-weight: 500;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    th {
+      font-weight: 600;
+      color: var(--text-label);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Username column: allow wrapping for long usernames */
+    td.username-cell {
+      white-space: normal;
+      word-break: break-word;
+      font-weight: 600;
+    }
+
+    /* Alternating row colors */
+    tbody tr:nth-child(even) td {
+      background: var(--bg-table-alt);
+    }
+
+    /* Status pill styling */
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
+      font-size: 11px;
+      border: 1px solid var(--border-soft);
+      color: var(--text-main);
+      font-weight: 600;
+      text-transform: capitalize;
+    }
+
+    .status-active {
+      color: var(--accent-green);
+      border-color: rgba(34, 197, 94, 0.5);
+      background: var(--bg-status-active);
+    }
+
+    .status-inactive {
+      color: var(--accent-orange);
+      border-color: rgba(249, 115, 22, 0.5);
+      background: var(--bg-status-inactive);
+    }
+
+    /* ==========================================
+       EMPTY STATE
+       ========================================== */
+    .no-data {
+      font-size: 14px;
+      color: var(--text-muted);
+      margin-top: 20px;
+      text-align: center;
+      padding: 40px 20px;
+    }
+
+    /* ==========================================
+       RESPONSIVE BREAKPOINTS
+       ========================================== */
+    @media (max-width: 992px) {
+      .control-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 20px 10px;
+      }
+      
+      .control-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      
+      .account-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      
+      .chevron {
+        align-self: flex-end;
+      }
+      
+      /* Horizontal scroll for tables on mobile */
+      .location-section {
+        overflow-x: auto;
+      }
+      
+      table {
+        min-width: 700px;
+      }
+    }
+
+    /* ==========================================
+       SCROLLBAR STYLING (optional)
+       ========================================== */
+    .multi-select-menu::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    .multi-select-menu::-webkit-scrollbar-track {
+      background: var(--bg-card);
+    }
+
+    .multi-select-menu::-webkit-scrollbar-thumb {
+      background: var(--border-soft);
+      border-radius: 4px;
+    }
+
+    .multi-select-menu::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <!-- ==========================================
+         HEADER
+         ========================================== -->
+    <h1>Corporate Membership Usage</h1>
+    <div class="summary-strip">
+      <span>Usage by invoice from latest MemberPress export.</span>
+      <span>Target memberships:</span>
+      <span class="badge">3888</span>
+      <span class="badge">3889</span>
+    </div>
+
+    <!-- ==========================================
+         CONTROL PANEL
+         ========================================== -->
+    <div class="controls control-grid">
+      
+      <!-- DATA SOURCE CARD -->
+      <div class="control-card">
+        <div class="control-title">Data source</div>
+        <div class="upload-box-inner">
+          <label for="csvInput">Upload MemberPress CSV (optional)</label>
+          <input type="file" id="csvInput" accept=".csv" />
+          <div class="upload-status" id="uploadStatus">
+            No file loaded. Using live sheet if available.
+          </div>
+        </div>
+      </div>
+
+      <!-- INVOICE / LOCATION / USER FILTER CARD -->
+      <div class="control-card">
+        <div class="control-title">Filter: invoice / location / user</div>
+        
+        <!-- Invoice multi-select dropdown -->
+        <div class="controls-group">
+          <label>Invoice (multi-select)</label>
+          <div class="multi-select" id="invoiceMulti">
+            <div class="multi-select-display" id="invoiceDisplay">
+              <span class="label-text" id="invoiceDisplayText">All invoices</span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="multi-select-menu" id="invoiceMenu"></div>
+          </div>
+        </div>
+        
+        <!-- Location text filter -->
+        <div class="controls-group">
+          <label for="filterLocation">Filter location (text)</label>
+          <input id="filterLocation" type="text" placeholder="search parent account name">
+        </div>
+        
+        <!-- User search filter -->
+        <div class="controls-group">
+          <label for="filterUser">Filter subaccount</label>
+          <input id="filterUser" type="text" placeholder="username / name / email">
+        </div>
+        
+        <div class="hint">
+          Invoice filter takes priority. Location text applies only when no invoices are selected.
+        </div>
+      </div>
+
+      <!-- ACTIVITY FILTER CARD -->
+      <div class="control-card">
+        <div class="control-title">Filter: activity</div>
+        
+        <!-- Last login date range -->
+        <div class="controls-group">
+          <label for="lastLoginPreset">Last login range</label>
+          <select id="lastLoginPreset">
+            <option value="">All logins</option>
+            <option value="30">Past 30 days</option>
+            <option value="60">Past 60 days</option>
+            <option value="90">Past 90 days</option>
+            <option value="180">Past 180 days (6 months)</option>
+          </select>
+        </div>
+        
+        <!-- Minimum login count threshold -->
+        <div class="controls-group">
+          <label for="minLogins">Min total logins (invoice)</label>
+          <input id="minLogins" type="number" min="0" step="1" placeholder="0">
+        </div>
+      </div>
+
+      <!-- SORT CARD -->
+      <div class="control-card">
+        <div class="control-title">Sort</div>
+        
+        <!-- Sort field selector -->
+        <div class="controls-group">
+          <label for="sortField">Sort by</label>
+          <select id="sortField">
+            <option value="logins">Total logins</option>
+            <option value="invoice">Invoice name</option>
+            <option value="last_login">Last login</option>
+          </select>
+        </div>
+        
+        <!-- Sort direction -->
+        <div class="controls-group">
+          <label for="sortDir">Direction</label>
+          <select id="sortDir">
+            <option value="desc">Desc</option>
+            <option value="asc">Asc</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==========================================
+         TOTALS BAR - Aggregate statistics
+         ========================================== -->
+    <div class="totals-bar" id="totalsBar"></div>
+
+    <!-- ==========================================
+         REPORT CONTENT - Dynamically generated
+         ========================================== -->
+    <div id="report-root"></div>
+    
+    <!-- Empty state message -->
+    <div class="no-data" id="noDataMsg">Awaiting data.</div>
+  </div>
+
+  <script>
+    /* ==========================================
+       CONFIGURATION
+       ========================================== */
+    
+    // Google Sheets CSV export URL - using /export endpoint (more reliable than gviz)
+    // To find your sheet ID (gid): open the sheet tab, look at URL after #gid=
+    const SPREADSHEET_ID = "1PeCWYZKM9k_n63jGRYF6vTrizBx8v5pehiAFatd5ifU";
+    const SHEET_GID = "369191302"; // ProcessedData tab gid
+    const AUTO_CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&gid=${SHEET_GID}`;
+
+    /* ==========================================
+       DOM REFERENCES
+       ========================================== */
+    const csvInput = document.getElementById("csvInput");
+    const uploadStatus = document.getElementById("uploadStatus");
+    const reportRoot = document.getElementById("report-root");
+    const noDataMsg = document.getElementById("noDataMsg");
+    const totalsBar = document.getElementById("totalsBar");
+
+    // Invoice multi-select elements
+    const invoiceMulti = document.getElementById("invoiceMulti");
+    const invoiceDisplay = document.getElementById("invoiceDisplay");
+    const invoiceDisplayText = document.getElementById("invoiceDisplayText");
+    const invoiceMenu = document.getElementById("invoiceMenu");
+
+    // Filter inputs
+    const filterLocation = document.getElementById("filterLocation");
+    const filterUser = document.getElementById("filterUser");
+    const lastLoginPreset = document.getElementById("lastLoginPreset");
+    const minLogins = document.getElementById("minLogins");
+    
+    // Sort controls
+    const sortField = document.getElementById("sortField");
+    const sortDir = document.getElementById("sortDir");
+
+    /* ==========================================
+       STATE MANAGEMENT
+       ========================================== */
+    let rawData = null;                    // Parsed CSV data
+    let selectedInvoices = new Set();      // Selected invoice names
+
+    /* ==========================================
+       INITIALIZATION - Load data on page load
+       ========================================== */
+    document.addEventListener("DOMContentLoaded", () => {
+      console.log("Attempting to load from:", AUTO_CSV_URL);
+      
+      // Attempt to load from Google Sheets
+      fetch(AUTO_CSV_URL, { 
+        cache: "no-store",
+        mode: "cors"
+      })
+        .then(r => {
+          console.log("Fetch response status:", r.status);
+          if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`);
+          return r.text();
+        })
+        .then(text => {
+          console.log("CSV loaded, length:", text.length, "chars");
+          console.log("First 200 chars:", text.substring(0, 200));
+          
+          const { headers, records } = normalizeCSV(parseCSV(text));
+          console.log("Parsed headers:", headers);
+          console.log("Record count:", records.length);
+          
+          rawData = transformData(headers, records);
+          console.log("Transformed data:", {
+            invoices: rawData.invoices.length,
+            totals: rawData.totals
+          });
+          
+          buildInvoiceDropdown(rawData);
+          applyFiltersAndRender();
+          uploadStatus.textContent = "✓ Loaded data from Google Sheet.";
+        })
+        .catch(err => {
+          console.error("Load failed:", err);
+          uploadStatus.textContent = `❌ Failed to load: ${err.message}`;
+        });
+    });
+
+    /* ==========================================
+       FILE UPLOAD HANDLER
+       ========================================== */
+    csvInput.addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      
+      console.log("Loading file:", file.name, file.size, "bytes");
+      uploadStatus.textContent = `Loading: ${file.name}`;
+      const reader = new FileReader();
+      
+      reader.onload = ev => {
+        try {
+          console.log("File read, length:", ev.target.result.length);
+          console.log("First 200 chars:", ev.target.result.substring(0, 200));
+          
+          const { headers, records } = normalizeCSV(parseCSV(ev.target.result));
+          console.log("Parsed headers:", headers);
+          console.log("Record count:", records.length);
+          
+          rawData = transformData(headers, records);
+          console.log("Transformed data:", {
+            invoices: rawData.invoices.length,
+            totals: rawData.totals
+          });
+          
+          buildInvoiceDropdown(rawData);
+          applyFiltersAndRender();
+          uploadStatus.textContent = `✓ Loaded: ${file.name}`;
+        } catch (err) {
+          console.error("CSV parsing error:", err);
+          console.error("Error stack:", err.stack);
+          uploadStatus.textContent = `❌ Error: ${err.message}`;
+          reportRoot.innerHTML = "";
+          noDataMsg.textContent = `Error parsing CSV: ${err.message}`;
+          noDataMsg.style.display = "block";
+          totalsBar.textContent = "";
+          rawData = null;
+        }
+      };
+      
+      reader.onerror = () => {
+        console.error("File read error:", reader.error);
+        uploadStatus.textContent = `❌ Failed to read file: ${reader.error.message}`;
+      };
+      
+      reader.readAsText(file);
+    });
+
+    /* ==========================================
+       MULTI-SELECT DROPDOWN BEHAVIOR
+       ========================================== */
+    
+    // Toggle dropdown open/closed
+    invoiceDisplay.addEventListener("click", e => {
+      e.stopPropagation();
+      invoiceMulti.classList.toggle("open");
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener("click", e => {
+      if (!invoiceMulti.contains(e.target)) {
+        invoiceMulti.classList.remove("open");
+      }
+    });
+
+    /* ==========================================
+       FILTER EVENT LISTENERS
+       ========================================== */
+    filterLocation.addEventListener("input", applyFiltersAndRender);
+    filterUser.addEventListener("input", applyFiltersAndRender);
+    lastLoginPreset.addEventListener("change", applyFiltersAndRender);
+    minLogins.addEventListener("input", applyFiltersAndRender);
+    sortField.addEventListener("change", applyFiltersAndRender);
+    sortDir.addEventListener("change", applyFiltersAndRender);
+
+    /* ==========================================
+       CSV PARSING UTILITIES
+       ========================================== */
+    
+    /**
+     * Parse CSV text into 2D array
+     * Handles quoted fields with commas and escaped quotes
+     */
+    function parseCSV(text) {
+      const rows = [];
+      let row = [];
+      let value = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < text.length; i++) {
+        const c = text[i];
+        const next = text[i + 1];
+
+        if (inQuotes) {
+          if (c === '"' && next === '"') {
+            // Escaped quote
+            value += '"';
+            i++;
+          } else if (c === '"') {
+            // End quote
+            inQuotes = false;
+          } else {
+            value += c;
+          }
+        } else {
+          if (c === '"') {
+            inQuotes = true;
+          } else if (c === ",") {
+            row.push(value);
+            value = "";
+          } else if (c === "\r") {
+            // Skip carriage return
+          } else if (c === "\n") {
+            row.push(value);
+            rows.push(row);
+            row = [];
+            value = "";
+          } else {
+            value += c;
+          }
+        }
+      }
+      
+      // Handle final row
+      if (value !== "" || row.length) {
+        row.push(value);
+        rows.push(row);
+      }
+      
+      // Filter out empty rows
+      return rows.filter(r => r.length && !(r.length === 1 && r[0] === ""));
+    }
+
+    /**
+     * Convert 2D array to objects with headers as keys
+     */
+    function normalizeCSV(rows) {
+      if (!rows.length) throw new Error("Empty CSV");
+      
+      // Trim all headers AND all cell values
+      const headers = rows[0].map(h => String(h || "").trim());
+      const records = rows.slice(1).map(r => {
+        const o = {};
+        headers.forEach((h, i) => {
+          // Trim cell values too
+          o[h] = r[i] !== undefined ? String(r[i] || "").trim() : "";
+        });
+        return o;
+      });
+      
