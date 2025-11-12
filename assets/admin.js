@@ -12,6 +12,8 @@
          * Initialize
          */
         init: function() {
+            console.log('MemberPress Corporate Reporting: Initializing...');
+            console.log('Config:', meprCorp);
             this.bindEvents();
             this.loadData();
         },
@@ -67,6 +69,8 @@
          * Load data via AJAX
          */
         loadData: function() {
+            console.log('Loading corporate data...');
+
             const $loading = $('#meprCorpLoading');
             const $error = $('#meprCorpError');
             const $noData = $('#meprCorpNoData');
@@ -80,6 +84,7 @@
 
             // Get filters
             const filters = this.getFilters();
+            console.log('Filters:', filters);
 
             // AJAX request
             $.ajax({
@@ -91,10 +96,15 @@
                     ...filters
                 },
                 success: (response) => {
+                    console.log('AJAX Response:', response);
                     $loading.hide();
 
                     if (response.success) {
-                        const { data, summary } = response.data;
+                        const { data, summary, debug } = response.data;
+
+                        console.log('Data received:', data.length, 'records');
+                        console.log('Summary:', summary);
+                        if (debug) console.log('Debug info:', debug);
 
                         // Update summary cards
                         this.updateSummary(summary);
@@ -105,15 +115,19 @@
                             $data.show();
                         } else {
                             // Show no data message
+                            console.warn('No data found matching criteria');
                             $noData.show();
                         }
                     } else {
+                        console.error('AJAX error:', response.data);
                         this.showError(response.data.message || meprCorp.strings.error);
                     }
                 },
                 error: (xhr, status, error) => {
+                    console.error('AJAX failed:', {xhr, status, error});
+                    console.error('Response text:', xhr.responseText);
                     $loading.hide();
-                    this.showError(meprCorp.strings.error + ' ' + error);
+                    this.showError(meprCorp.strings.error + ' ' + error + '. Check console for details.');
                 }
             });
         },

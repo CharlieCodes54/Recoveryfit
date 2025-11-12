@@ -78,6 +78,7 @@ class MemberPress_Corporate_Reporting {
             return;
         }
 
+        // Enqueue CSS
         wp_enqueue_style(
             'mepr-corp-admin-css',
             MEPR_CORP_PLUGIN_URL . 'assets/admin.css',
@@ -85,6 +86,10 @@ class MemberPress_Corporate_Reporting {
             MEPR_CORP_VERSION
         );
 
+        // Enqueue jQuery if not already loaded
+        wp_enqueue_script('jquery');
+
+        // Enqueue admin JS
         wp_enqueue_script(
             'mepr-corp-admin-js',
             MEPR_CORP_PLUGIN_URL . 'assets/admin.js',
@@ -93,9 +98,12 @@ class MemberPress_Corporate_Reporting {
             true
         );
 
+        // Localize script with data
         wp_localize_script('mepr-corp-admin-js', 'meprCorp', array(
             'ajax_url' => admin_url('admin-ajax.php'),
             'nonce' => wp_create_nonce('mepr_corp_nonce'),
+            'debug' => defined('WP_DEBUG') && WP_DEBUG,
+            'plugin_url' => MEPR_CORP_PLUGIN_URL,
             'strings' => array(
                 'loading' => __('Loading...', 'mepr-corporate-reporting'),
                 'error' => __('Error loading data. Please try again.', 'mepr-corporate-reporting'),
@@ -248,35 +256,46 @@ class MemberPress_Corporate_Reporting {
      * AJAX handler for getting report data
      */
     public function ajax_get_report_data() {
-        check_ajax_referer('mepr_corp_nonce', 'nonce');
+        try {
+            check_ajax_referer('mepr_corp_nonce', 'nonce');
 
-        if (!current_user_can('manage_options')) {
-            wp_send_json_error(array('message' => 'Unauthorized'));
+            if (!current_user_can('manage_options')) {
+                wp_send_json_error(array('message' => 'Unauthorized'));
+            }
+
+            $filters = array(
+                'search' => isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '',
+                'location' => isset($_POST['location']) ? sanitize_text_field($_POST['location']) : '',
+                'membership_ids' => isset($_POST['membership_ids']) ? array_map('intval', $_POST['membership_ids']) : array(),
+                'min_logins' => isset($_POST['min_logins']) ? intval($_POST['min_logins']) : 0,
+                'order_by' => isset($_POST['order_by']) ? sanitize_text_field($_POST['order_by']) : 'total_logins',
+                'order' => isset($_POST['order']) ? sanitize_text_field($_POST['order']) : 'DESC',
+            );
+
+            $data = $this->get_corporate_data($filters);
+
+            // Calculate summary statistics
+            $summary = array(
+                'total_corporate_accounts' => count($data),
+                'total_sub_accounts' => array_sum(array_column($data, 'sub_account_count')),
+                'total_logins' => array_sum(array_column($data, 'total_logins')),
+                'average_logins_per_account' => count($data) > 0 ? round(array_sum(array_column($data, 'total_logins')) / count($data), 2) : 0,
+            );
+
+            wp_send_json_success(array(
+                'data' => $data,
+                'summary' => $summary,
+                'debug' => array(
+                    'filters' => $filters,
+                    'record_count' => count($data),
+                )
+            ));
+        } catch (Exception $e) {
+            wp_send_json_error(array(
+                'message' => 'Error: ' . $e->getMessage(),
+                'trace' => defined('WP_DEBUG') && WP_DEBUG ? $e->getTraceAsString() : null
+            ));
         }
-
-        $filters = array(
-            'search' => isset($_POST['search']) ? sanitize_text_field($_POST['search']) : '',
-            'location' => isset($_POST['location']) ? sanitize_text_field($_POST['location']) : '',
-            'membership_ids' => isset($_POST['membership_ids']) ? array_map('intval', $_POST['membership_ids']) : array(),
-            'min_logins' => isset($_POST['min_logins']) ? intval($_POST['min_logins']) : 0,
-            'order_by' => isset($_POST['order_by']) ? sanitize_text_field($_POST['order_by']) : 'total_logins',
-            'order' => isset($_POST['order']) ? sanitize_text_field($_POST['order']) : 'DESC',
-        );
-
-        $data = $this->get_corporate_data($filters);
-
-        // Calculate summary statistics
-        $summary = array(
-            'total_corporate_accounts' => count($data),
-            'total_sub_accounts' => array_sum(array_column($data, 'sub_account_count')),
-            'total_logins' => array_sum(array_column($data, 'total_logins')),
-            'average_logins_per_account' => count($data) > 0 ? round(array_sum(array_column($data, 'total_logins')) / count($data), 2) : 0,
-        );
-
-        wp_send_json_success(array(
-            'data' => $data,
-            'summary' => $summary,
-        ));
     }
 
     /**
