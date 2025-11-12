@@ -124,6 +124,44 @@
     }
 
     /* ==========================================
+       WARNING BANNER
+       ========================================== */
+    .warning-banner {
+      margin-bottom: 16px;
+      padding: 16px 20px;
+      background: rgba(249, 115, 22, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+      border-radius: var(--radius-lg);
+      color: #fbbf24;
+    }
+
+    .warning-banner strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 14px;
+      color: #f97316;
+    }
+
+    .warning-banner ol {
+      margin: 12px 0 12px 20px;
+      padding: 0;
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .warning-banner li {
+      margin-bottom: 6px;
+    }
+
+    .warning-banner code {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+    }
+
+    /* ==========================================
        IFRAME CONTAINER
        ========================================== */
     .iframe-wrapper {
@@ -205,6 +243,20 @@
 
   <!-- Dashboard -->
   <div class="dashboard-container">
+    <!-- Warning Banner (Hidden by default, shown if sheet not published) -->
+    <div class="warning-banner" id="warningBanner" style="display: none;">
+      <strong>⚠️ Sheet Not Published - Setup Required</strong>
+      <p style="margin: 8px 0; font-size: 13px;">To embed this Google Sheet, you need to publish it to the web:</p>
+      <ol>
+        <li>Open the <a href="https://docs.google.com/spreadsheets/d/1PeCWYZKM9k_n63jGRYF6vTrizBx8v5pehiAFatd5ifU/edit?gid=369191302#gid=369191302" target="_blank" style="color: #38bdf8;">Google Sheet</a></li>
+        <li>Click <code>File</code> → <code>Share</code> → <code>Publish to web</code></li>
+        <li>Select the specific sheet/tab to publish (or entire document)</li>
+        <li>Click <code>Publish</code> and confirm</li>
+        <li>Refresh this page</li>
+      </ol>
+      <p style="margin: 8px 0 0 0; font-size: 12px; opacity: 0.8;">Alternatively, make the sheet "Anyone with the link can view" in sharing settings.</p>
+    </div>
+
     <!-- Sheet Info Bar -->
     <div class="sheet-info">
       <div class="sheet-info-label">
@@ -235,54 +287,131 @@
     const SHEET_ID = '1PeCWYZKM9k_n63jGRYF6vTrizBx8v5pehiAFatd5ifU';
     const GID = '369191302';
 
-    // Construct the embed URL
-    // Using the /pubhtml endpoint for better embedding support
-    const embedUrl = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pubhtml?gid=${GID}&single=true&widget=true&headers=false`;
+    // Multiple embed URL formats to try
+    const embedUrls = [
+      // Format 1: Published web version (requires "Publish to web")
+      `https://docs.google.com/spreadsheets/d/e/2PACX-1vT${SHEET_ID}/pubhtml?gid=${GID}&single=true&widget=true&headers=false`,
 
-    // Create iframe after page load
-    window.addEventListener('DOMContentLoaded', () => {
+      // Format 2: Standard pubhtml (requires "Publish to web")
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pubhtml?gid=${GID}&single=true&widget=true&headers=false`,
+
+      // Format 3: Preview mode (may work with "Anyone with link" sharing)
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/preview?gid=${GID}&single=true&widget=true&headers=false`,
+
+      // Format 4: Edit mode embed (works if user has access)
+      `https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?gid=${GID}&single=true&widget=true&headers=false&rm=minimal`
+    ];
+
+    // Try loading with different URLs
+    let currentUrlIndex = 0;
+    let loadAttempts = 0;
+    const MAX_ATTEMPTS = embedUrls.length;
+
+    function showError() {
+      const warningBanner = document.getElementById('warningBanner');
       const wrapper = document.getElementById('iframeWrapper');
 
-      // Create iframe element
+      // Show warning banner
+      if (warningBanner) {
+        warningBanner.style.display = 'block';
+      }
+
+      // Show error in iframe area
+      wrapper.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: center; height: 100%; padding: 40px; text-align: center;">
+          <div style="max-width: 500px;">
+            <div style="font-size: 48px; margin-bottom: 16px;">📋</div>
+            <div style="font-size: 18px; margin-bottom: 12px; color: #f97316;">Sheet Not Accessible</div>
+            <div style="color: var(--text-sub); font-size: 14px; line-height: 1.6; margin-bottom: 20px;">
+              The Google Sheet needs to be published to the web or shared publicly.<br>
+              See instructions above for setup steps.
+            </div>
+            <a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?gid=${GID}#gid=${GID}"
+               target="_blank"
+               style="display: inline-block; padding: 10px 20px; background: var(--accent); color: var(--bg-main); text-decoration: none; border-radius: 8px; font-weight: 600;">
+              Open in Google Sheets
+            </a>
+          </div>
+        </div>
+      `;
+    }
+
+    function tryLoadSheet() {
+      if (loadAttempts >= MAX_ATTEMPTS) {
+        showError();
+        return;
+      }
+
+      const wrapper = document.getElementById('iframeWrapper');
       const iframe = document.createElement('iframe');
-      iframe.src = embedUrl;
+
+      iframe.src = embedUrls[currentUrlIndex];
       iframe.title = 'MemberPress Corporate Membership Data';
       iframe.loading = 'eager';
+      iframe.allow = 'clipboard-write';
 
-      // Handle iframe load event
+      let hasLoaded = false;
+      let checkTimeout;
+
+      // Check iframe content after load
       iframe.addEventListener('load', () => {
-        // Remove loading message
-        const loading = wrapper.querySelector('.loading');
-        if (loading) {
-          loading.remove();
-        }
+        hasLoaded = true;
+
+        // Wait a bit to check if the iframe actually loaded content or an error page
+        checkTimeout = setTimeout(() => {
+          try {
+            // Try to detect if Google Sheets actually loaded
+            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+            const bodyText = iframeDoc.body ? iframeDoc.body.innerText : '';
+
+            // Check for common error messages
+            if (bodyText.includes('not been published') ||
+                bodyText.includes('not found') ||
+                bodyText.includes('no access') ||
+                bodyText.length < 100) {
+              // This format failed, try next one
+              loadAttempts++;
+              currentUrlIndex++;
+              tryLoadSheet();
+              return;
+            }
+
+            // Success! Remove loading message
+            const loading = wrapper.querySelector('.loading');
+            if (loading) {
+              loading.remove();
+            }
+          } catch (e) {
+            // Cross-origin restriction means sheet is likely loaded successfully
+            // Remove loading message
+            const loading = wrapper.querySelector('.loading');
+            if (loading) {
+              loading.remove();
+            }
+          }
+        }, 1500);
       });
 
       // Handle iframe error
       iframe.addEventListener('error', () => {
-        wrapper.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #f97316; padding: 20px; text-align: center;">
-            <div>
-              <div style="font-size: 18px; margin-bottom: 12px;">⚠️ Failed to load Google Sheet</div>
-              <div style="color: var(--text-sub); font-size: 14px;">
-                The sheet may not be publicly accessible. Please check sharing settings.
-              </div>
-              <div style="margin-top: 16px;">
-                <a href="https://docs.google.com/spreadsheets/d/${SHEET_ID}/edit?gid=${GID}#gid=${GID}"
-                   target="_blank"
-                   style="color: var(--accent); text-decoration: none;">
-                  Open directly in Google Sheets →
-                </a>
-              </div>
-            </div>
-          </div>
-        `;
+        clearTimeout(checkTimeout);
+        loadAttempts++;
+        currentUrlIndex++;
+
+        if (loadAttempts >= MAX_ATTEMPTS) {
+          showError();
+        } else {
+          tryLoadSheet();
+        }
       });
 
       // Clear wrapper and add iframe
-      wrapper.innerHTML = '';
+      wrapper.innerHTML = '<div class="loading">Loading Google Sheet...</div>';
       wrapper.appendChild(iframe);
-    });
+    }
+
+    // Start loading when page is ready
+    window.addEventListener('DOMContentLoaded', tryLoadSheet);
   </script>
 </body>
 </html>
