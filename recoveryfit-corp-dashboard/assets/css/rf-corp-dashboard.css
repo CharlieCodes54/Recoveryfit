@@ -1,0 +1,155 @@
+.rf-corp-dashboard-wrap {
+  max-width: 1200px;
+}
+
+.rf-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.rf-control-select,
+.rf-control-search {
+  min-width: 160px;
+  padding: 6px 10px;
+}
+
+.rf-control-search {
+  flex: 1 1 240px;
+}
+
+.rf-invoice-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rf-invoice-card {
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.rf-invoice-card.is-open {
+  border-color: #007cba;
+}
+
+.rf-invoice-header {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  font-size: 15px;
+  padding: 14px 16px;
+  border: none;
+  background: #f6f7f7;
+  cursor: pointer;
+}
+
+.rf-invoice-header:hover,
+.rf-invoice-header:focus {
+  background: #e9f5ff;
+  outline: none;
+}
+
+.rf-invoice-label {
+  font-weight: 600;
+  flex: 1 1 auto;
+}
+
+.rf-invoice-metric {
+  white-space: nowrap;
+  font-size: 13px;
+  color: #50575e;
+}
+
+.rf-invoice-body {
+  padding: 0 16px 16px;
+  background: #fff;
+}
+
+.rf-parent-item {
+  border-top: 1px solid #e2e4e7;
+}
+
+.rf-parent-item:first-child {
+  border-top: none;
+}
+
+.rf-parent-header {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  font-size: 14px;
+  padding: 12px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.rf-parent-header:hover,
+.rf-parent-header:focus {
+  color: #007cba;
+  outline: none;
+}
+
+.rf-parent-label {
+  font-weight: 600;
+  flex: 1 1 auto;
+}
+
+.rf-parent-metric {
+  font-size: 12px;
+  color: #646970;
+  white-space: nowrap;
+}
+
+.rf-subaccounts {
+  margin-bottom: 16px;
+}
+
+.rf-subaccounts[hidden] {
+  display: none !important;
+}
+
+.rf-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 8px;
+}
+
+.rf-table th,
+.rf-table td {
+  border: 1px solid #dcdcde;
+  padding: 8px 10px;
+  vertical-align: top;
+  font-size: 13px;
+}
+
+.rf-table th {
+  background: #f3f4f5;
+  text-align: left;
+}
+
+.rf-parent-account-row {
+  background: #f0f6ff;
+  font-weight: 600;
+}
+
+.rf-empty-state {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #dcdcde;
+  border-radius: 4px;
+  text-align: center;
+  color: #50575e;
+}
