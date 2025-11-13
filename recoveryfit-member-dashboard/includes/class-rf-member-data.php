@@ -80,7 +80,7 @@ class Member_Data {
             'fields'  => [ 'ID' ],
             'orderby' => 'registered',
             'order'   => 'DESC',
-            // Use -1 to ensure every user is returned; 0 limits results to zero.
+            // Explicitly request all users; leaving "number" empty defaults to 10.
             'number'  => -1,
         ];
 
